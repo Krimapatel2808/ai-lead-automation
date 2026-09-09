@@ -4,8 +4,10 @@ import time
 
 from dotenv import load_dotenv
 from groq import Groq
+from fastapi import FastAPI
+from pydantic import BaseModel
 
-from database import create_database, save_lead
+from app.database import create_database, save_lead
 
 
 # ==================================================
@@ -26,6 +28,62 @@ if not GROQ_API_KEY:
 
 
 client = Groq(api_key=GROQ_API_KEY)
+app = FastAPI(title="LeadFlow API")
+
+
+
+class LeadRequest(BaseModel):
+    name: str
+    company: str
+    message: str
+
+
+@app.post("/api/leads")
+def receive_lead(lead: LeadRequest):
+
+    create_database()
+
+    info = extract_lead_information(lead.message)
+
+    score = calculate_score(info)
+
+    priority = determine_priority(score)
+
+    action = determine_action(
+        score,
+        info.get("missing_information", []),
+        lead.message
+    )
+
+    follow_up = generate_follow_up(
+        lead.name,
+        lead.company,
+        lead.message,
+        info,
+        score,
+        priority
+    )
+
+    save_lead(
+        name=lead.name,
+        company=lead.company,
+        message=lead.message,
+        lead_score=score,
+        priority=priority,
+        action=action,
+        requirement=info.get("requirement", "Not specified")
+    )
+
+    return {
+        "status": "success",
+        "name": lead.name,
+        "company": lead.company,
+        "lead_score": score,
+        "priority": priority,
+        "action": action,
+        "requirement": info.get("requirement", "Not specified"),
+        "follow_up": follow_up
+    }
 
 
 # ==================================================
