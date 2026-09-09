@@ -2,7 +2,7 @@ import sqlite3
 
 import streamlit as st
 
-from database import create_database, save_lead
+from app.database import create_database, save_lead
 from app.logic import (
     calculate_score,
     determine_action,
