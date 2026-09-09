@@ -2,8 +2,8 @@ import sqlite3
 
 import streamlit as st
 
-from app.database import create_database, save_lead
-from app.main import (
+from database import create_database, save_lead
+from app.logic import (
     calculate_score,
     determine_action,
     determine_priority,
