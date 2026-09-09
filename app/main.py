@@ -7,7 +7,7 @@ from groq import Groq
 from fastapi import FastAPI
 from pydantic import BaseModel
 
-from app.database import create_database, save_lead
+from .database import create_database, save_lead
 
 
 # ==================================================
