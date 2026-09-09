@@ -5,7 +5,7 @@ import time
 from dotenv import load_dotenv
 from groq import Groq
 
-from app.database import create_database, save_lead
+from database import create_database, save_lead
 
 
 # ==================================================
