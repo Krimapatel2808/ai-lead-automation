@@ -106,6 +106,7 @@ def receive_lead(lead: LeadRequest):
 
 @app.get("/api/leads")
 def get_leads():
+    create_database()
 
     connection = sqlite3.connect("leads.db")
     connection.row_factory = sqlite3.Row
