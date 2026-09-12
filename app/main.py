@@ -5,6 +5,8 @@ import time
 from dotenv import load_dotenv
 from groq import Groq
 from fastapi import FastAPI
+from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 
 from .database import create_database, save_lead
@@ -38,6 +40,14 @@ if not GROQ_API_KEY:
 client = Groq(api_key=GROQ_API_KEY)
 app = FastAPI(title="LeadFlow API")
 
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 
 class LeadRequest(BaseModel):

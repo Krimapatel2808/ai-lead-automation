@@ -238,12 +238,17 @@ st.divider()
 # =========================================================
 
 st.markdown(
-    "# Turn incoming enquiries into sales-ready opportunities."
+    "# Turn inbound enquiries into sales-ready opportunities."
 )
 
 st.markdown(
-    "LeadFlow reads customer enquiries, identifies buying signals, "
-    "scores the opportunity, and tells your sales team what to do next."
+    "LeadFlow helps sales teams respond faster by automatically "
+    "understanding incoming enquiries, identifying buying signals, "
+    "prioritizing opportunities, and drafting the next response."
+)
+
+st.caption(
+    "Demo workflow: Enquiry → Qualification → Priority → Action → Follow-up"
 )
 
 st.write("")
@@ -328,39 +333,72 @@ input_col, result_col = st.columns(
 
 
 # =========================================================
-# NEW LEAD
+# SIMULATED INCOMING LEAD
 # =========================================================
 
 with input_col:
 
     with st.container(border=True):
 
-        st.markdown("### New lead")
+        st.markdown("### 1. Incoming lead")
 
         st.caption(
-            "Paste a customer enquiry to qualify it instantly."
+            "Demo simulation of a lead arriving automatically from a business channel."
         )
 
-        name = st.text_input(
-            "Lead name",
-            placeholder="e.g. Priya Sharma",
+        st.markdown(
+            "**Source:** Website enquiry  ·  **Status:** New"
         )
 
-        company = st.text_input(
-            "Company",
-            placeholder="e.g. Acme Technologies",
+        demo_leads = {
+            "High-intent buyer": {
+                "name": "Aarav Shah",
+                "company": "Nova Retail",
+                "message": (
+                    "Hi, we are looking for 200 licenses for our sales team. "
+                    "Our budget is around ₹10 lakh and we want to get started "
+                    "this month. I handle the purchase decision. Please share "
+                    "the pricing and next steps."
+                ),
+            },
+            "Pricing enquiry": {
+                "name": "Meera Patel",
+                "company": "BrightLabs",
+                "message": (
+                    "Hello, could you send me pricing details for your software? "
+                    "We are evaluating options for our company and would like "
+                    "more information about the available plans."
+                ),
+            },
+            "Early-stage enquiry": {
+                "name": "Rohan Mehta",
+                "company": "Vertex Solutions",
+                "message": (
+                    "We are exploring tools that could help our team manage "
+                    "customer enquiries. Can you share some information about "
+                    "what your solution does?"
+                ),
+            },
+        }
+
+        demo_type = st.selectbox(
+            "Incoming enquiry",
+            list(demo_leads.keys()),
+            label_visibility="collapsed",
         )
 
-        message = st.text_area(
-            "Customer enquiry",
-            placeholder=(
-                "Paste the customer's message here...\n\n"
-                "Example: We need 200 licenses and our budget is ₹10 lakh."
-            ),
+        selected_lead = demo_leads[demo_type]
+
+        st.markdown(
+            f"**{selected_lead['name']}** · {selected_lead['company']}"
         )
+
+        st.caption(selected_lead["message"])
+
+        st.write("")
 
         analyze = st.button(
-            "Analyze lead →",
+            "Process incoming lead →",
             type="primary",
         )
 
@@ -373,140 +411,134 @@ with result_col:
 
     with st.container(border=True):
 
-        st.markdown("### Lead assessment")
+        st.markdown("### 2. AI sales assessment")
 
         if analyze:
 
-            if (
-                not name.strip()
-                or not company.strip()
-                or not message.strip()
+            name = selected_lead["name"]
+            company = selected_lead["company"]
+            message = selected_lead["message"]
+
+            with st.spinner(
+                "AI is processing the incoming lead..."
             ):
 
-                st.warning(
-                    "Please provide the lead name, company, and enquiry."
-                )
+                try:
 
-            else:
+                    # -----------------------------------------
+                    # AI EXTRACTION
+                    # -----------------------------------------
 
-                with st.spinner(
-                    "Analyzing enquiry..."
-                ):
-
-                    try:
-
-                        # -----------------------------------------
-                        # AI EXTRACTION
-                        # -----------------------------------------
-
-                        info = extract_lead_information(
-                            message.strip()
-                        )
+                    info = extract_lead_information(
+                        message.strip()
+                    )
 
 
-                        # -----------------------------------------
-                        # SCORING
-                        # -----------------------------------------
+                    # -----------------------------------------
+                    # SCORING
+                    # -----------------------------------------
 
-                        score = calculate_score(
-                            info
-                        )
-
-
-                        # -----------------------------------------
-                        # PRIORITY
-                        # -----------------------------------------
-
-                        priority = determine_priority(
-                            score
-                        )
+                    score = calculate_score(
+                        info
+                    )
 
 
-                        # -----------------------------------------
-                        # ACTION
-                        # -----------------------------------------
+                    # -----------------------------------------
+                    # PRIORITY
+                    # -----------------------------------------
 
-                        action = determine_action(
-                            score,
-                            info.get(
-                                "missing_information",
-                                [],
-                            ),
-                            message.strip(),
-                        )
+                    priority = determine_priority(
+                        score
+                    )
 
 
-                        # -----------------------------------------
-                        # AI FOLLOW-UP
-                        # -----------------------------------------
+                    # -----------------------------------------
+                    # ACTION
+                    # -----------------------------------------
 
-                        follow_up = generate_follow_up(
-                            name.strip(),
-                            company.strip(),
-                            message.strip(),
-                            info,
-                            score,
-                            priority,
-                        )
-
-
-                        # -----------------------------------------
-                        # SAVE LEAD
-                        # -----------------------------------------
-
-                        save_lead(
-                            name=name.strip(),
-                            company=company.strip(),
-                            message=message.strip(),
-                            lead_score=score,
-                            priority=priority,
-                            action=action,
-                            requirement=info.get(
-                                "requirement",
-                                "No requirement provided.",
-                            ),
-                        )
+                    action = determine_action(
+                        score,
+                        info.get(
+                            "missing_information",
+                            [],
+                        ),
+                        message.strip(),
+                    )
 
 
-                        # -----------------------------------------
-                        # SESSION STATE
-                        # -----------------------------------------
+                    # -----------------------------------------
+                    # AI FOLLOW-UP
+                    # -----------------------------------------
 
-                        st.session_state["analysis"] = {
-                            "name": name.strip(),
-                            "company": company.strip(),
-                            "message": message.strip(),
-                            "info": info,
-                            "score": score,
-                            "priority": priority,
-                            "action": action,
-                            "follow_up": follow_up,
-                        }
+                    follow_up = generate_follow_up(
+                        name.strip(),
+                        company.strip(),
+                        message.strip(),
+                        info,
+                        score,
+                        priority,
+                    )
 
 
-                        st.rerun()
+                    # -----------------------------------------
+                    # SAVE LEAD
+                    # -----------------------------------------
+
+                    save_lead(
+                        name=name.strip(),
+                        company=company.strip(),
+                        message=message.strip(),
+                        lead_score=score,
+                        priority=priority,
+                        action=action,
+                        requirement=info.get(
+                            "requirement",
+                            "No requirement provided.",
+                        ),
+                    )
 
 
-                    except RuntimeError as error:
+                    # -----------------------------------------
+                    # SESSION STATE
+                    # -----------------------------------------
 
-                        st.error(
-                            str(error)
-                        )
+                    st.session_state["analysis"] = {
+                        "name": name.strip(),
+                        "company": company.strip(),
+                        "message": message.strip(),
+                        "info": info,
+                        "score": score,
+                        "priority": priority,
+                        "action": action,
+                        "follow_up": follow_up,
+                    }
 
 
-                    except ValueError as error:
-
-                        st.error(
-                            str(error)
-                        )
+                    st.rerun()
 
 
-                    except Exception as error:
+                except RuntimeError as error:
 
-                        st.error(
-                            f"Something went wrong: {error}"
-                        )
+                    st.error(
+                        str(error)
+                    )
 
+
+                except ValueError as error:
+
+                    st.error(
+                        str(error)
+                    )
+
+
+                except Exception as error:
+
+                    st.error(
+                        f"Something went wrong: {error}"
+                    )
+
+
+    # =====================================================
 
         # =====================================================
         # RESULT
@@ -516,31 +548,23 @@ with result_col:
             "analysis"
         )
 
-
         if analysis:
 
             score = analysis["score"]
-
             priority = analysis["priority"]
-
             action = analysis["action"]
-
             info = analysis["info"]
-
 
             st.caption(
                 f"{analysis['name']} · "
                 f"{analysis['company']}"
             )
 
-
             st.write("")
-
 
             score_col, priority_col = st.columns(
                 [1, 1]
             )
-
 
             with score_col:
 
@@ -549,7 +573,6 @@ with result_col:
                     f"{score}/100",
                 )
 
-
             with priority_col:
 
                 st.metric(
@@ -557,9 +580,44 @@ with result_col:
                     priority,
                 )
 
-
             st.write("")
 
+            # ---------------------------------------------
+            # SCORE EXPLANATION
+            # ---------------------------------------------
+
+            st.markdown(
+                "#### Why this score?"
+            )
+
+            st.caption(
+                "The score is calculated from buying signals detected in the enquiry."
+            )
+
+            score_factors = [
+                ("Purchase intent", "purchase_intent", 25),
+                ("Specific product / service", "specific_product_or_service", 20),
+                ("Quantity / scope", "quantity_or_scope", 15),
+                ("Budget", "budget", 15),
+                ("Purchase timeline", "purchase_timeline", 15),
+                ("Decision-maker", "decision_making_authority", 10),
+            ]
+
+            for label, key, points in score_factors:
+
+                if info.get(key, False):
+
+                    st.write(
+                        f"✓ **{label}**  +{points} points"
+                    )
+
+                else:
+
+                    st.write(
+                        f"○ {label}  +0 points"
+                    )
+
+            st.write("")
 
             # ---------------------------------------------
             # ACTION
@@ -568,7 +626,6 @@ with result_col:
             st.markdown(
                 "#### Recommended action"
             )
-
 
             if priority == "High":
 
@@ -588,9 +645,7 @@ with result_col:
                     f"ℹ️ {action}"
                 )
 
-
             st.write("")
-
 
             # ---------------------------------------------
             # REQUIREMENT
@@ -600,14 +655,12 @@ with result_col:
                 "#### Requirement"
             )
 
-
             st.write(
                 info.get(
                     "requirement",
                     "No requirement identified.",
                 )
             )
-
 
             # ---------------------------------------------
             # FOLLOW-UP
@@ -627,7 +680,6 @@ with result_col:
                 analysis["follow_up"],
                 language=None,
             )
-
 
         else:
 
@@ -672,14 +724,11 @@ with signals_col:
             "Signals explicitly detected in the customer's enquiry."
         )
 
-
         if analysis:
 
             info = analysis["info"]
 
-
             signals = [
-
                 (
                     "Purchase intent",
                     info.get(
@@ -687,7 +736,6 @@ with signals_col:
                         False,
                     ),
                 ),
-
                 (
                     "Specific product / service",
                     info.get(
@@ -695,7 +743,6 @@ with signals_col:
                         False,
                     ),
                 ),
-
                 (
                     "Quantity / scope",
                     info.get(
@@ -703,7 +750,6 @@ with signals_col:
                         False,
                     ),
                 ),
-
                 (
                     "Budget",
                     info.get(
@@ -711,7 +757,6 @@ with signals_col:
                         False,
                     ),
                 ),
-
                 (
                     "Purchase timeline",
                     info.get(
@@ -719,7 +764,6 @@ with signals_col:
                         False,
                     ),
                 ),
-
                 (
                     "Decision-maker",
                     info.get(
@@ -727,9 +771,7 @@ with signals_col:
                         False,
                     ),
                 ),
-
             ]
-
 
             for label, present in signals:
 
@@ -744,7 +786,6 @@ with signals_col:
                     st.caption(
                         f"○ {label}"
                     )
-
 
         else:
 
@@ -769,14 +810,12 @@ with missing_col:
             "Details the salesperson may need before qualification."
         )
 
-
         if analysis:
 
             missing = analysis["info"].get(
                 "missing_information",
                 [],
             )
-
 
             if missing:
 
@@ -792,13 +831,11 @@ with missing_col:
                         f"• {readable_item}"
                     )
 
-
             else:
 
                 st.success(
                     "No major missing information detected."
                 )
-
 
         else:
 
@@ -837,7 +874,6 @@ if recent_leads:
                 [2.5, 2.1, 1.1, 3.5]
             )
 
-
             # ---------------------------------------------
             # NAME / COMPANY
             # ---------------------------------------------
@@ -851,7 +887,6 @@ if recent_leads:
                 st.caption(
                     lead["company"]
                 )
-
 
             # ---------------------------------------------
             # PRIORITY
@@ -880,7 +915,6 @@ if recent_leads:
                         icon="ℹ️",
                     )
 
-
             # ---------------------------------------------
             # SCORE
             # ---------------------------------------------
@@ -891,7 +925,6 @@ if recent_leads:
                     "Score",
                     f"{lead['lead_score']}",
                 )
-
 
             # ---------------------------------------------
             # ACTION
@@ -906,7 +939,6 @@ if recent_leads:
                 st.write(
                     lead["action"]
                 )
-
 
 else:
 
