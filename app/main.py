@@ -1,6 +1,7 @@
 import json
 import os
 import time
+import sqlite3
 
 from dotenv import load_dotenv
 from groq import Groq
@@ -103,7 +104,32 @@ def receive_lead(lead: LeadRequest):
         "follow_up": follow_up
     }
 
+@app.get("/api/leads")
+def get_leads():
 
+    connection = sqlite3.connect("leads.db")
+    connection.row_factory = sqlite3.Row
+
+    rows = connection.execute(
+        """
+        SELECT
+            id,
+            name,
+            company,
+            message,
+            lead_score,
+            priority,
+            action,
+            requirement,
+            created_at
+        FROM leads
+        ORDER BY id DESC
+        """
+    ).fetchall()
+
+    connection.close()
+
+    return [dict(row) for row in rows]
 
 
 
