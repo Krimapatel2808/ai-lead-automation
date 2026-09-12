@@ -1,4 +1,4 @@
-import sqlite3
+import requests
 
 import streamlit as st
 
@@ -28,36 +28,15 @@ st.set_page_config(
 # DATABASE
 # =========================================================
 
-DATABASE_NAME = "leads.db"
-
-create_database()
+API_URL = "https://ai-lead-automation-cm4y.onrender.com/api/leads"
 
 
 def get_leads():
 
-    connection = sqlite3.connect(DATABASE_NAME)
-    connection.row_factory = sqlite3.Row
+    response = requests.get(API_URL, timeout=30)
+    response.raise_for_status()
 
-    rows = connection.execute(
-        """
-        SELECT
-            id,
-            name,
-            company,
-            message,
-            lead_score,
-            priority,
-            action,
-            requirement,
-            created_at
-        FROM leads
-        ORDER BY id DESC
-        """
-    ).fetchall()
-
-    connection.close()
-
-    return [dict(row) for row in rows]
+    return response.json()
 
 
 # =========================================================
