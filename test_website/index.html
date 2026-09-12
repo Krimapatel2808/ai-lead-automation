@@ -1,12 +1,16 @@
-
 <!DOCTYPE html>
+
 <html lang="en">
+
 <head>
+
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
     <title>LeadFlow Test Website</title>
 
     <style>
+
         body {
             font-family: Arial, sans-serif;
             background: #f5f5f5;
@@ -88,7 +92,9 @@
             background: #fef2f2;
             color: #991b1b;
         }
+
     </style>
+
 </head>
 
 <body>
@@ -104,6 +110,7 @@
     <form id="leadForm">
 
         <label for="name">Your name</label>
+
         <input
             type="text"
             id="name"
@@ -112,6 +119,7 @@
         >
 
         <label for="company">Company</label>
+
         <input
             type="text"
             id="company"
@@ -120,6 +128,7 @@
         >
 
         <label for="message">How can we help?</label>
+
         <textarea
             id="message"
             placeholder="We need 200 licenses. Our budget is ₹10 lakh and we'd like to purchase this month."
@@ -151,9 +160,13 @@ form.addEventListener("submit", async function(event) {
     result.textContent = "Processing enquiry...";
 
     const leadData = {
+
         name: document.getElementById("name").value,
+
         company: document.getElementById("company").value,
+
         message: document.getElementById("message").value
+
     };
 
     try {
@@ -174,18 +187,18 @@ form.addEventListener("submit", async function(event) {
         const data = await response.json();
 
         if (!response.ok) {
+
             throw new Error(
                 data.detail || "Something went wrong."
             );
+
         }
 
         result.className = "success";
 
         result.textContent =
             "Enquiry received successfully!\n\n" +
-            "Lead score: " + data.lead_score + "\n" +
-            "Priority: " + data.priority + "\n" +
-            "Action: " + data.action;
+            "Our sales team will get back to you shortly.";
 
     } catch (error) {
 
@@ -202,5 +215,5 @@ form.addEventListener("submit", async function(event) {
 </script>
 
 </body>
-</html>
 
+</html>
