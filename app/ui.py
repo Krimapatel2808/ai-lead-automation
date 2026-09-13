@@ -618,6 +618,33 @@ st.success(action_text)
 
 
 # --------------------------------------------------
+# AI Customer Response
+# --------------------------------------------------
+
+st.markdown("### 🤖 AI Customer Response")
+
+if st.button("Generate AI Response"):
+    try:
+        response = requests.post(
+            "https://ai-lead-automation-cm4y.onrender.com/api/generate-response",
+            json=selected.to_dict(),
+            timeout=60,
+        )
+        response.raise_for_status()
+        result = response.json()
+
+        st.success("AI response generated")
+        st.info(result["ai_response"])
+
+    except requests.exceptions.RequestException as e:
+        st.error(f"Could not generate AI response: {e}")
+
+    except Exception as e:
+        st.error(f"Something went wrong: {e}")
+
+
+
+# --------------------------------------------------
 # Recommended offer
 # --------------------------------------------------
 
