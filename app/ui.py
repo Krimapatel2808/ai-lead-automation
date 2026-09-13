@@ -165,7 +165,7 @@ st.markdown(
 # API
 # --------------------------------------------------
 
-API_URL = "http://127.0.0.1:8000/api/opportunities"
+API_URL = "https://ai-lead-automation-cm4y.onrender.com/api/opportunities"
 
 
 # --------------------------------------------------
