@@ -1,171 +1,158 @@
-import requests
-
 import streamlit as st
+import requests
+import pandas as pd
 
 
-
-# =========================================================
-# PAGE CONFIG
-# =========================================================
+# --------------------------------------------------
+# Page configuration
+# --------------------------------------------------
 
 st.set_page_config(
-    page_title="LeadFlow — AI Lead Qualification",
-    page_icon="⚡",
+    page_title="LeadFlow",
+    page_icon="💰",
     layout="wide",
-    initial_sidebar_state="collapsed",
 )
 
 
-# =========================================================
-# DATABASE
-# =========================================================
-
-API_URL = "https://ai-lead-automation-cm4y.onrender.com/api/leads"
-
-
-def get_leads():
-
-    response = requests.get(API_URL, timeout=30)
-    response.raise_for_status()
-
-    return response.json()
-
-
-# =========================================================
-# CUSTOM CSS
-# =========================================================
+# --------------------------------------------------
+# Dark SaaS styling
+# --------------------------------------------------
 
 st.markdown(
     """
     <style>
 
-    /* ================= APP ================= */
-
+    /* Main background */
     .stApp {
-        background:
-            radial-gradient(
-                circle at 15% 0%,
-                rgba(99, 102, 241, 0.13),
-                transparent 32%
-            ),
-            radial-gradient(
-                circle at 90% 10%,
-                rgba(139, 92, 246, 0.10),
-                transparent 28%
-            ),
-            #09090b;
+        background-color: #0b0f14;
+        color: #f1f5f9;
     }
 
+    /* Main content width */
     .block-container {
-        max-width: 1450px;
-        padding-top: 2.2rem;
-        padding-bottom: 4rem;
+        padding-top: 2rem;
+        padding-bottom: 3rem;
+        max-width: 1400px;
     }
 
-
-    /* ================= TYPOGRAPHY ================= */
-
-    h1,
-    h2,
-    h3 {
-        letter-spacing: -0.03em;
+    /* Headings */
+    h1, h2, h3 {
+        color: #f8fafc !important;
     }
 
-    p,
-    label {
-        color: #a1a1aa;
+    /* Normal text */
+    p, label, .stMarkdown {
+        color: #cbd5e1;
     }
 
-
-    /* ================= INPUTS ================= */
-
-    div[data-baseweb="input"] > div,
-    div[data-baseweb="textarea"] > div {
-        background: #111114 !important;
-        border-color: #27272a !important;
-    }
-
-    input,
-    textarea {
-        color: #f4f4f5 !important;
-    }
-
-    textarea {
-        min-height: 150px !important;
-    }
-
-
-    /* ================= BUTTON ================= */
-
-    .stButton > button {
-        width: 100%;
-        min-height: 48px;
-        border-radius: 10px;
-        border: 1px solid #6366f1;
-        background: #6366f1;
-        color: white;
-        font-size: 1rem;
-        font-weight: 700;
-        transition: 0.2s ease;
-    }
-
-    .stButton > button:hover {
-        border-color: #818cf8;
-        background: #4f46e5;
-        transform: translateY(-1px);
-    }
-
-
-    /* ================= METRICS ================= */
-
-    div[data-testid="stMetric"] {
-        background: #111114;
-        border: 1px solid #27272a;
+    /* Metric cards */
+    div[data-testid="metric-container"] {
+        background-color: #111827;
+        border: 1px solid #1f2937;
         border-radius: 14px;
-        padding: 1.1rem 1.2rem;
-    }
-
-    div[data-testid="stMetricLabel"] {
-        color: #a1a1aa;
+        padding: 18px;
     }
 
     div[data-testid="stMetricValue"] {
-        color: #fafafa;
-        font-size: 2rem;
-        font-weight: 750;
+        color: #f8fafc;
     }
 
-
-    /* ================= CONTAINERS ================= */
-
-    div[data-testid="stVerticalBlockBorderWrapper"] {
-        border-color: #27272a !important;
-        background: rgba(17, 17, 20, 0.72);
-        border-radius: 16px;
+    div[data-testid="stMetricLabel"] {
+        color: #94a3b8;
     }
 
+    /* Dataframe */
+    div[data-testid="stDataFrame"] {
+        border: 1px solid #1f2937;
+        border-radius: 12px;
+        overflow: hidden;
+    }
 
-    /* ================= DIVIDER ================= */
+    /* Selectbox */
+    div[data-baseweb="select"] > div {
+        background-color: #111827;
+        border-color: #334155;
+        color: #f8fafc;
+    }
 
+    /* Info boxes */
+    div[data-testid="stAlert"] {
+        border-radius: 12px;
+    }
+
+    /* Success */
+    div[data-testid="stAlert"][kind="success"] {
+        background-color: #0d2118;
+        border: 1px solid #166534;
+    }
+
+    /* Warning */
+    div[data-testid="stAlert"][kind="warning"] {
+        background-color: #211b0d;
+        border: 1px solid #854d0e;
+    }
+
+    /* Info */
+    div[data-testid="stAlert"][kind="info"] {
+        background-color: #111c2e;
+        border: 1px solid #1e40af;
+    }
+
+    /* Buttons */
+    .stButton > button {
+        background-color: #16a34a;
+        color: white;
+        border: none;
+        border-radius: 8px;
+        font-weight: 600;
+    }
+
+    .stButton > button:hover {
+        background-color: #15803d;
+        color: white;
+    }
+
+    /* Divider */
     hr {
-        border-color: #27272a;
+        border-color: #1f2937;
     }
 
-
-    /* ================= SMALL TEXT ================= */
-
-    .muted {
-        color: #71717a;
-        font-size: 0.86rem;
+    /* Caption */
+    .stCaption {
+        color: #64748b !important;
     }
 
+    /* Custom hero */
+    .hero {
+        background: linear-gradient(
+            135deg,
+            #111827 0%,
+            #0f172a 100%
+        );
+        border: 1px solid #1f2937;
+        border-radius: 18px;
+        padding: 30px;
+        margin-bottom: 25px;
+    }
 
-    /* ================= FOLLOW-UP ================= */
+    .hero-title {
+        font-size: 2.2rem;
+        font-weight: 700;
+        color: #f8fafc;
+        margin-bottom: 8px;
+    }
 
-    .followup-label {
-        color: #a1a1aa;
-        font-size: 0.86rem;
-        margin-bottom: 0.4rem;
+    .hero-subtitle {
+        font-size: 1rem;
+        color: #94a3b8;
+    }
+
+    /* Section cards */
+    .section-card {
+        background-color: #111827;
+        border: 1px solid #1f2937;
+        border-radius: 14px;
+        padding: 20px;
     }
 
     </style>
@@ -174,257 +161,498 @@ st.markdown(
 )
 
 
-# =========================================================
-# HEADER
-# =========================================================
+# --------------------------------------------------
+# API
+# --------------------------------------------------
 
-header_left, header_right = st.columns([4, 1])
+API_URL = "http://127.0.0.1:8000/api/opportunities"
 
-with header_left:
 
-    st.markdown(
-        "### ⚡ **LeadFlow**"
+# --------------------------------------------------
+# Load opportunities
+# --------------------------------------------------
+
+@st.cache_data(ttl=30)
+def get_opportunities():
+
+    response = requests.get(
+        API_URL,
+        timeout=30,
     )
 
-    st.caption(
-        "AI-powered lead qualification for faster sales follow-up"
+    response.raise_for_status()
+
+    data = response.json()
+
+    return pd.DataFrame(data["opportunities"])
+
+
+# --------------------------------------------------
+# Hero
+# --------------------------------------------------
+
+st.markdown(
+    """
+    <div class="hero">
+        <div class="hero-title">
+            💰 LeadFlow
+        </div>
+        <div class="hero-subtitle">
+            AI Revenue Recovery for E-commerce
+            <br>
+            Identify high-intent shoppers, understand purchase barriers,
+            and prioritize the next best action.
+        </div>
+    </div>
+    """,
+    unsafe_allow_html=True,
+)
+
+
+# --------------------------------------------------
+# Load data
+# --------------------------------------------------
+
+try:
+
+    df = get_opportunities()
+
+except Exception as e:
+
+    st.error(
+        "Unable to connect to the LeadFlow API."
+    )
+
+    st.code(str(e))
+
+    st.stop()
+
+
+# --------------------------------------------------
+# Metrics
+# --------------------------------------------------
+
+high_intent = len(
+    df[df["intent_level"] == "High"]
+)
+
+checkout = len(
+    df[df["purchase_stage"] == "Checkout"]
+)
+
+not_purchased = len(
+    df[df["purchase_status"] == "Not Purchased"]
+)
+
+potential_revenue = df.loc[
+    df["purchase_status"] == "Not Purchased",
+    "cart_value"
+].sum()
+
+
+col1, col2, col3, col4 = st.columns(4)
+
+
+with col1:
+
+    st.metric(
+        "🔥 High Intent",
+        high_intent,
     )
 
 
-with header_right:
+with col2:
 
-    st.markdown(
-        "<div style='text-align:right; padding-top:12px;'>"
-        "🟢 System operational"
-        "</div>",
-        unsafe_allow_html=True,
+    st.metric(
+        "🛒 Checkout",
+        checkout,
+    )
+
+
+with col3:
+
+    st.metric(
+        "⚠️ Unconverted",
+        not_purchased,
+    )
+
+
+with col4:
+
+    st.metric(
+        "💰 Potential Cart Value",
+        f"₹{potential_revenue:,.0f}",
     )
 
 
 st.divider()
 
 
-# =========================================================
-# HERO
-# =========================================================
+# --------------------------------------------------
+# Opportunity filters
+# --------------------------------------------------
 
-st.markdown(
-    "# Turn inbound enquiries into sales-ready opportunities."
-)
-
-st.markdown(
-    "LeadFlow helps sales teams respond faster by automatically "
-    "understanding incoming enquiries, identifying buying signals, "
-    "prioritizing opportunities, and drafting the next response."
-)
+st.subheader("🔥 Priority Opportunities")
 
 st.caption(
-    "Live workflow: Website enquiry → AI qualification → Sales dashboard"
-)
-
-st.write("")
-st.write("")
-
-
-# =========================================================
-# DASHBOARD METRICS
-# =========================================================
-
-leads = get_leads()
-
-total_leads = len(leads)
-
-high_count = sum(
-    1
-    for lead in leads
-    if lead["priority"] == "High"
-)
-
-medium_count = sum(
-    1
-    for lead in leads
-    if lead["priority"] == "Medium"
-)
-
-average_score = (
-    sum(lead["lead_score"] for lead in leads)
-    / total_leads
-    if total_leads
-    else 0
+    "Filter shoppers by purchase intent, barrier, and buying stage."
 )
 
 
-metric1, metric2, metric3, metric4 = st.columns(4)
+filter_col1, filter_col2, filter_col3, filter_col4 = st.columns(4)
 
 
-with metric1:
+with filter_col1:
 
-    st.metric(
-        "Leads processed",
-        total_leads,
+    intent_filter = st.selectbox(
+        "Intent",
+        ["All", "High", "Medium", "Low"],
     )
 
 
-with metric2:
+with filter_col2:
 
-    st.metric(
-        "High priority",
-        high_count,
+    barrier_options = [
+        "All"
+    ] + sorted(
+        df["barrier"].dropna().unique().tolist()
+    )
+
+    barrier_filter = st.selectbox(
+        "Barrier",
+        barrier_options,
     )
 
 
-with metric3:
+with filter_col3:
 
-    st.metric(
-        "Medium priority",
-        medium_count,
+    stage_options = [
+        "All"
+    ] + sorted(
+        df["purchase_stage"].dropna().unique().tolist()
+    )
+
+    stage_filter = st.selectbox(
+        "Purchase Stage",
+        stage_options,
     )
 
 
-with metric4:
+with filter_col4:
 
-    st.metric(
-        "Average score",
-        f"{average_score:.1f}",
+    status_filter = st.selectbox(
+        "Purchase Status",
+        [
+            "Not Purchased",
+            "Purchased",
+            "All",
+        ],
     )
 
 
-st.write("")
-st.write("")
+# --------------------------------------------------
+# Apply filters
+# --------------------------------------------------
+
+filtered_df = df.copy()
 
 
-# =========================================================
-# LIVE LEADS
-# =========================================================
+if intent_filter != "All":
 
-st.markdown("### Live sales activity")
-st.caption("Real enquiries received through the LeadFlow website.")
-
-# =========================================================
-# RECENT LEADS
-# =========================================================
-
-st.write("")
-st.write("")
+    filtered_df = filtered_df[
+        filtered_df["intent_level"] == intent_filter
+    ]
 
 
-st.markdown(
-    "### Recent leads"
+if barrier_filter != "All":
+
+    filtered_df = filtered_df[
+        filtered_df["barrier"] == barrier_filter
+    ]
+
+
+if stage_filter != "All":
+
+    filtered_df = filtered_df[
+        filtered_df["purchase_stage"] == stage_filter
+    ]
+
+
+if status_filter != "All":
+
+    filtered_df = filtered_df[
+        filtered_df["purchase_status"] == status_filter
+    ]
+
+
+# --------------------------------------------------
+# Priority opportunities
+# --------------------------------------------------
+
+priority_df = df[
+    (df["intent_level"] == "High")
+    & (df["purchase_status"] == "Not Purchased")
+].copy()
+
+priority_df = priority_df.sort_values(
+    by=["intent_score", "cart_value"],
+    ascending=[False, False],
 )
 
-st.caption(
-    "Latest enquiries processed by LeadFlow."
+
+# --------------------------------------------------
+# Opportunity table
+# --------------------------------------------------
+
+if filtered_df.empty:
+
+    st.info(
+        "No shoppers match the selected filters."
+    )
+
+else:
+
+    display_columns = [
+        "customer_name",
+        "product_name",
+        "cart_value",
+        "intent_score",
+        "intent_level",
+        "barrier",
+        "purchase_stage",
+        "urgency",
+        "purchase_status",
+    ]
+
+    display_df = filtered_df[
+        display_columns
+    ].copy()
+
+    display_df = display_df.rename(
+        columns={
+            "customer_name": "Shopper",
+            "product_name": "Product",
+            "cart_value": "Cart Value",
+            "intent_score": "Intent Score",
+            "intent_level": "Intent",
+            "barrier": "Barrier",
+            "purchase_stage": "Stage",
+            "urgency": "Urgency",
+            "purchase_status": "Status",
+        }
+    )
+
+    st.dataframe(
+        display_df,
+        use_container_width=True,
+        hide_index=True,
+    )
+
+
+st.divider()
+
+
+# --------------------------------------------------
+# Shopper analysis
+# --------------------------------------------------
+
+st.subheader("🔎 Opportunity Details")
+
+
+shopper_options = (
+    priority_df["customer_name"].tolist()
+    if not priority_df.empty
+    else df["customer_name"].tolist()
 )
 
 
-recent_leads = get_leads()
+selected_customer = st.selectbox(
+    "Select a shopper",
+    shopper_options,
+)
 
 
-if recent_leads:
+selected = df[
+    df["customer_name"] == selected_customer
+].iloc[0]
 
-    for lead in recent_leads[:8]:
 
-        with st.container(border=True):
+# --------------------------------------------------
+# Why this shopper matters
+# --------------------------------------------------
 
-            col1, col2, col3, col4 = st.columns(
-                [2.5, 2.1, 1.1, 3.5]
-            )
+st.markdown("### 🎯 Why this shopper matters")
 
-            # ---------------------------------------------
-            # NAME / COMPANY
-            # ---------------------------------------------
 
-            with col1:
+intent = selected["intent_level"]
+score = int(selected["intent_score"])
+stage = selected["purchase_stage"]
+barrier = selected["barrier"]
+cart_value = float(selected["cart_value"])
+status = selected["purchase_status"]
 
-                st.markdown(
-                    f"**{lead['name']}**"
-                )
 
-                st.caption(
-                    lead["company"]
-                )
+if status == "Purchased":
 
-            # ---------------------------------------------
-            # PRIORITY
-            # ---------------------------------------------
+    st.info(
+        "This shopper has already purchased. "
+        "Use their history for retention or future recommendations."
+    )
 
-            with col2:
+elif intent == "High":
 
-                if lead["priority"] == "High":
+    st.success(
+        f"High-intent shopper with a ₹{cart_value:,.0f} "
+        f"purchase opportunity currently at the {stage.lower()} stage."
+    )
 
-                    st.error(
-                        "HIGH",
-                        icon="🔥",
-                    )
+elif intent == "Medium":
 
-                elif lead["priority"] == "Medium":
-
-                    st.warning(
-                        "MEDIUM",
-                        icon="⚡",
-                    )
-
-                else:
-
-                    st.info(
-                        "LOW",
-                        icon="ℹ️",
-                    )
-
-            # ---------------------------------------------
-            # SCORE
-            # ---------------------------------------------
-
-            with col3:
-
-                st.metric(
-                    "Score",
-                    f"{lead['lead_score']}",
-                )
-
-            # ---------------------------------------------
-            # ACTION
-            # ---------------------------------------------
-
-            with col4:
-
-                st.caption(
-                    "Next action"
-                )
-
-                st.write(
-                    lead["action"]
-                )
+    st.warning(
+        f"Medium-intent shopper currently in the "
+        f"{stage.lower()} stage. Nurturing may increase conversion."
+    )
 
 else:
 
     st.info(
-        "No leads have been processed yet."
+        "Low-intent shopper. No immediate sales intervention is recommended."
     )
 
 
-# =========================================================
-# FOOTER
-# =========================================================
+# --------------------------------------------------
+# Shopper information
+# --------------------------------------------------
 
-st.write("")
-st.divider()
+col1, col2 = st.columns(2)
 
 
-footer_left, footer_right = st.columns(
-    [3, 1]
+with col1:
+
+    st.markdown("### 👤 Shopper")
+
+    st.write(
+        f"**Name:** {selected['customer_name']}"
+    )
+
+    st.write(
+        f"**Customer Type:** {selected['customer_type']}"
+    )
+
+    st.write(
+        f"**Channel:** {selected['channel']}"
+    )
+
+    st.write(
+        f"**Previous Orders:** {selected['previous_orders']}"
+    )
+
+    st.write(
+        f"**Previous Spend:** "
+        f"₹{float(selected['previous_spend']):,.0f}"
+    )
+
+
+with col2:
+
+    st.markdown("### 🛍️ Purchase Opportunity")
+
+    st.write(
+        f"**Product:** {selected['product_name']}"
+    )
+
+    st.write(
+        f"**Cart Value:** ₹{cart_value:,.0f}"
+    )
+
+    st.write(
+        f"**Intent:** {intent} ({score}/100)"
+    )
+
+    st.write(
+        f"**Barrier:** {barrier}"
+    )
+
+    st.write(
+        f"**Stage:** {stage}"
+    )
+
+    st.write(
+        f"**Urgency:** {selected['urgency']}"
+    )
+
+
+# --------------------------------------------------
+# Customer message
+# --------------------------------------------------
+
+st.markdown("### 💬 Customer Message")
+
+st.info(
+    selected["message"]
 )
 
 
-with footer_left:
+# --------------------------------------------------
+# Recommended action
+# --------------------------------------------------
+
+st.markdown("### 🚀 Recommended Next Action")
+
+action = selected["recommended_action"]
+
+
+if isinstance(action, dict):
+
+    action_text = action.get(
+        "description",
+        str(action),
+    )
+
+else:
+
+    action_text = str(action)
+
+
+st.success(action_text)
+
+
+# --------------------------------------------------
+# Recommended offer
+# --------------------------------------------------
+
+offer = selected["recommended_offer"]
+
+st.markdown("### 🏷️ Offer Recommendation")
+
+
+if isinstance(offer, str) and offer:
+
+    st.warning(offer)
+
+elif isinstance(offer, dict):
+
+    st.warning(
+        f"**{offer.get('type', 'Offer')}** — "
+        f"{offer.get('description', '')}"
+    )
+
+else:
 
     st.caption(
-        "LeadFlow · AI-assisted sales qualification"
+        "No discount offer recommended. "
+        "LeadFlow only recommends offers when the shopper "
+        "meets the configured business rules."
     )
 
 
-with footer_right:
+# --------------------------------------------------
+# Footer
+# --------------------------------------------------
 
-    st.caption(
-        "Built for faster sales response"
-    )
+st.divider()
+
+st.caption(
+    "LeadFlow Demo • Synthetic E-commerce Data • "
+    "AI-Assisted Revenue Recovery"
+)

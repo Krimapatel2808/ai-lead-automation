@@ -3,44 +3,25 @@ import os
 import time
 import sqlite3
 
-from dotenv import load_dotenv
-from groq import Groq
-from fastapi import FastAPI
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 
-from .database import create_database, save_lead
-
-
-from .logic import (
+from app.database import create_database, save_lead
+from app.logic import (
     extract_lead_information,
-    generate_follow_up,
     calculate_score,
     determine_priority,
     determine_action,
+    generate_follow_up,
 )
 
-# ==================================================
-# CONFIGURATION
-# ==================================================
-
-load_dotenv()
-
-GROQ_API_KEY = os.getenv("GROQ_API_KEY")
-
-MODEL = "openai/gpt-oss-20b"
-
-
-if not GROQ_API_KEY:
-    raise ValueError(
-        "GROQ_API_KEY not found. Make sure it is present in your .env file."
-    )
-
-
-client = Groq(api_key=GROQ_API_KEY)
 app = FastAPI(title="LeadFlow API")
 
+
+# --------------------------------------------------
+# CORS
+# --------------------------------------------------
 
 app.add_middleware(
     CORSMiddleware,
@@ -51,68 +32,82 @@ app.add_middleware(
 )
 
 
+# --------------------------------------------------
+# Existing website enquiry model
+# --------------------------------------------------
+
 class LeadRequest(BaseModel):
     name: str
     company: str
     message: str
 
 
+# --------------------------------------------------
+# Existing lead intake endpoint
+# --------------------------------------------------
+
 @app.post("/api/leads")
-def receive_lead(lead: LeadRequest):
+def create_lead(lead: LeadRequest):
 
     create_database()
 
-    info = extract_lead_information(lead.message)
+    information = extract_lead_information(lead.message)
 
-    score = calculate_score(info)
+    score = calculate_score(information)
 
     priority = determine_priority(score)
 
     action = determine_action(
         score,
-        info.get("missing_information", []),
-        lead.message
+        information.get("missing_information", []),
+        lead.message,
     )
 
     follow_up = generate_follow_up(
         lead.name,
         lead.company,
         lead.message,
-        info,
-        score,
-        priority
+        information,
+        action,
     )
 
     save_lead(
-        name=lead.name,
-        company=lead.company,
-        message=lead.message,
-        lead_score=score,
-        priority=priority,
-        action=action,
-        requirement=info.get("requirement", "Not specified")
+        lead.name,
+        lead.company,
+        lead.message,
+        score,
+        priority,
+        action,
+        information.get("requirement"),
     )
 
     return {
         "status": "success",
         "name": lead.name,
         "company": lead.company,
-        "lead_score": score,
+        "score": score,
         "priority": priority,
         "action": action,
-        "requirement": info.get("requirement", "Not specified"),
-        "follow_up": follow_up
+        "requirement": information.get("requirement"),
+        "follow_up": follow_up,
     }
+
+
+# --------------------------------------------------
+# Existing leads endpoint
+# --------------------------------------------------
 
 @app.get("/api/leads")
 def get_leads():
+
     create_database()
 
     connection = sqlite3.connect("leads.db")
     connection.row_factory = sqlite3.Row
 
-    rows = connection.execute(
-        """
+    cursor = connection.cursor()
+
+    cursor.execute("""
         SELECT
             id,
             name,
@@ -125,186 +120,66 @@ def get_leads():
             created_at
         FROM leads
         ORDER BY id DESC
-        """
-    ).fetchall()
+    """)
+
+    rows = cursor.fetchall()
 
     connection.close()
 
     return [dict(row) for row in rows]
 
 
+# --------------------------------------------------
+# E-commerce opportunity endpoint
+# --------------------------------------------------
 
-# ==================================================
-# CLI APPLICATION
-# ==================================================
+@app.get("/api/opportunities")
+def get_opportunities():
 
-def main():
+    import pandas as pd
 
-    create_database()
+    file_path = "data/leadflow_analyzed.csv"
 
-    print(
-        "AI Lead Qualification System"
-    )
+    if not os.path.exists(file_path):
+        return {
+            "status": "error",
+            "message": "Analyzed dataset not found.",
+        }
 
-    print(
-        "----------------------------"
-    )
+    df = pd.read_csv(file_path)
 
+    # Convert NaN values to empty strings
+    df = df.fillna("")
 
-    # ----------------------------------------------
-    # INPUT
-    # ----------------------------------------------
-
-    name = input(
-        "Lead name: "
-    ).strip()
-
-    company = input(
-        "Company: "
-    ).strip()
-
-    message = input(
-        "Lead message: "
-    ).strip()
+    return {
+        "status": "success",
+        "count": len(df),
+        "opportunities": df.to_dict(orient="records"),
+    }
 
 
-    if not name or not company or not message:
+# --------------------------------------------------
+# Health check
+# --------------------------------------------------
 
-        print(
-            "\nPlease provide all lead details."
-        )
-
-        return
-
-
-    print(
-        "\nAnalyzing lead..."
-    )
+@app.get("/")
+def root():
+    return {
+        "status": "online",
+        "service": "LeadFlow API",
+    }
 
 
-    # ----------------------------------------------
-    # AI EXTRACTION
-    # ----------------------------------------------
-
-    info = extract_lead_information(
-        message
-    )
-
-
-    # ----------------------------------------------
-    # SCORE
-    # ----------------------------------------------
-
-    score = calculate_score(
-        info
-    )
-
-
-    # ----------------------------------------------
-    # PRIORITY
-    # ----------------------------------------------
-
-    priority = determine_priority(
-        score
-    )
-
-
-    # ----------------------------------------------
-    # ACTION
-    # ----------------------------------------------
-
-    action = determine_action(
-        score,
-        info.get(
-            "missing_information",
-            []
-        ),
-        message,
-    )
-
-
-    # ----------------------------------------------
-    # FOLLOW-UP
-    # ----------------------------------------------
-
-    follow_up = generate_follow_up(
-        name,
-        company,
-        message,
-        info,
-        score,
-        priority,
-    )
-
-
-    # ----------------------------------------------
-    # SAVE
-    # ----------------------------------------------
-
-    save_lead(
-        name=name,
-        company=company,
-        message=message,
-        lead_score=score,
-        priority=priority,
-        action=action,
-        requirement=info.get(
-            "requirement",
-            "Not specified",
-        ),
-    )
-
-
-    # ----------------------------------------------
-    # OUTPUT
-    # ----------------------------------------------
-
-    print(
-        "\nAI Lead Analysis"
-    )
-
-    print(
-        "----------------"
-    )
-
-    print(
-        f"Lead Score: {score}"
-    )
-
-    print(
-        f"Priority: {priority}"
-    )
-
-    print(
-        f"Recommended Action: {action}"
-    )
-
-    print(
-        f"Requirement: {info.get('requirement', 'Not specified')}"
-    )
-
-
-    print(
-        "\nSuggested Follow-up"
-    )
-
-    print(
-        "-------------------"
-    )
-
-    print(
-        follow_up
-    )
-
-
-    print(
-        "\nLead saved successfully."
-    )
-
-
-# ==================================================
-# RUN
-# ==================================================
+# --------------------------------------------------
+# Local development
+# --------------------------------------------------
 
 if __name__ == "__main__":
-    main()
+    import uvicorn
+
+    uvicorn.run(
+        "app.main:app",
+        host="0.0.0.0",
+        port=8000,
+        reload=True,
+    )
