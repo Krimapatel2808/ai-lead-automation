@@ -625,9 +625,15 @@ st.markdown("### 🤖 AI Customer Response")
 
 if st.button("Generate AI Response"):
     try:
+        shopper_data = (
+            selected.astype(object)
+            .where(pd.notna(selected), None)
+            .to_dict()
+        )
+
         response = requests.post(
             "https://ai-lead-automation-cm4y.onrender.com/api/generate-response",
-            json=selected.to_dict(),
+            json=shopper_data,
             timeout=60,
         )
         response.raise_for_status()
