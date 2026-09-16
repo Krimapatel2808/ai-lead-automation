@@ -41,8 +41,7 @@ def get_opportunities():
         return {
             "status": "success",
             "count": len(df),
-            "opportunities": df.to_dict(orient="records"),
-        }
+"opportunities": df.astype(object).where(pd.notna(df), None).to_dict(orient="records"),        }
 
     except FileNotFoundError:
         raise HTTPException(
@@ -78,8 +77,6 @@ def generate_response(shopper: dict):
             status_code=500,
             detail=str(e),
         )
-
-
 if __name__ == "__main__":
     import uvicorn
 
@@ -89,3 +86,4 @@ if __name__ == "__main__":
         port=8000,
         reload=True,
     )
+    
